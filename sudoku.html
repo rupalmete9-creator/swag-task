@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sudoku Solver</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 20px auto;
+    }
+
+    td {
+      border: 1px solid black;
+      width: 40px;
+      height: 40px;
+      text-align: center;
+    }
+
+    input {
+      width: 38px;
+      height: 38px;
+      text-align: center;
+      font-size: 18px;
+      border: none;
+      outline: none;
+    }
+
+    /* Thick borders for 3x3 boxes */
+    tr:nth-child(3n) td {
+      border-bottom: 2px solid black;
+    }
+
+    td:nth-child(3n) {
+      border-right: 2px solid black;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Sudoku Solver</h2>
+
+<table id="sudoku-grid"></table>
+
+<button onclick="solveButtonClicked()">Solve</button>
+<button onclick="clearBoard()">Clear</button>
+
+<script>
+
+let board = [];
+
+// Initialize board array
+for (let r = 0; r < 9; r++) {
+  board[r] = [];
+  for (let c = 0; c < 9; c++) {
+    board[r][c] = { value: 0 };
+  }
+}
+
+// Create Grid
+const grid = document.getElementById('sudoku-grid');
+
+for (let r = 0; r < 9; r++) {
+  const tr = document.createElement('tr');
+
+  for (let c = 0; c < 9; c++) {
+    const td = document.createElement('td');
+    const input = document.createElement('input');
+
+    input.type = 'text';
+    input.maxLength = 1;
+    input.dataset.row = r;
+    input.dataset.col = c;
+
+    input.addEventListener('input', onInput);
+
+    td.appendChild(input);
+    tr.appendChild(td);
+  }
+
+  grid.appendChild(tr);
+}
+
+// Handle user input
+function onInput(e) {
+  const row = parseInt(e.target.dataset.row);
+  const col = parseInt(e.target.dataset.col);
+  const value = parseInt(e.target.value);
+
+  if (!isNaN(value) && value >= 1 && value <= 9) {
+    board[row][col].value = value;
+  } else {
+    board[row][col].value = 0;
+    e.target.value = "";
+  }
+}
+
+// Check if number is valid
+function isValid(row, col, num) {
+
+  // Row check
+  for (let c = 0; c < 9; c++) {
+    if (board[row][c].value === num) return false;
+  }
+
+  // Column check
+  for (let r = 0; r < 9; r++) {
+    if (board[r][col].value === num) return false;
+  }
+
+  // 3x3 box check
+  let startRow = Math.floor(row / 3) * 3;
+  let startCol = Math.floor(col / 3) * 3;
+
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      if (board[startRow + r][startCol + c].value === num)
+        return false;
+    }
+  }
+
+  return true;
+}
+
+// Backtracking solve function
+function solveSudoku() {
+
+  for (let row = 0; row < 9; row++) {
+    for (let col = 0; col < 9; col++) {
+
+      if (board[row][col].value === 0) {
+
+        for (let num = 1; num <= 9; num++) {
+
+          if (isValid(row, col, num)) {
+
+            board[row][col].value = num;
+
+            if (solveSudoku()) {
+              return true;
+            }
+
+            board[row][col].value = 0;
+          }
+        }
+
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+// Update UI after solving
+function updateUI() {
+  const inputs = document.querySelectorAll("input");
+
+  inputs.forEach(input => {
+    const r = parseInt(input.dataset.row);
+    const c = parseInt(input.dataset.col);
+
+    input.value = board[r][c].value === 0 ? "" : board[r][c].value;
+  });
+}
+
+// Solve button
+function solveButtonClicked() {
+  if (solveSudoku()) {
+    updateUI();
+    alert("Sudoku Solved ✅");
+  } else {
+    alert("No Solution ❌");
+  }
+}
+
+// Clear board
+function clearBoard() {
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      board[r][c].value = 0;
+    }
+  }
+  updateUI();
+}
+
+</script>
+
+</body>
+</html>
